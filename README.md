@@ -118,6 +118,27 @@ pnpm build
 pnpm dev        # watch mode
 ```
 
+## Contributing Upstream
+
+**Note for Contributors**: Before adding major features to kilo-dashboard, consider contributing the macOS → Colima → Docker layering logic to [LazyDocker](https://github.com/jesseduffield/lazydocker) instead.
+
+LazyDocker is:
+- **Go-based** — More performant, single-binary distribution
+- **Extensible** — Plugin architecture for custom views
+- **Actively maintained** — Larger community and contributor base
+- **Colima-aware** — Already integrates with Colima CLI
+
+The layered visibility concept (macOS → Colima VM → Docker) would benefit LazyDocker's broader user base rather than remaining in this one-off tool.
+
+### What Could Be Contributed
+
+- Colima VM resource tracking (CPU, memory, disk allocation)
+- macOS system resource integration
+- Three-tier hierarchy visualization
+- Colima-specific optimizations and health checks
+
+kilo-dashboard serves as a proof-of-concept. For production-grade tooling, LazyDocker is likely the better community-oriented option.
+
 ## License
 
 MIT © kjon-life
