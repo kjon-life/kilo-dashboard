@@ -6,13 +6,13 @@
 ![TypeScript](https://img.shields.io/badge/typescript-5.6-blue.svg)
 ![pnpm](https://img.shields.io/badge/pnpm-9.14-f69220.svg)
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 **Layered visibility into macOS → Colima VM → Docker resource hierarchy**
 
 Built with [Ink](https://github.com/vadimdemedes/ink) — the same React-for-CLI framework that powers Claude Code.
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ## Installation
 
