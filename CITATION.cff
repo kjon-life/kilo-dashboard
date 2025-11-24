@@ -1,0 +1,37 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: kilo-dashboard
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: k
+    family-names: jon
+    email: 76539355+kjon-life@users.noreply.github.com
+    affiliation: Founder
+    orcid: 'https://orcid.org/0009-0008-2892-3049'
+identifiers:
+  - type: url
+    value: 'https://github.com/kjon-life/kilo-dashboard'
+repository-code: 'https://github.com/kjon-life/kilo-dashboard'
+url: 'https://github.com/kjon-life/kilo-dashboard'
+abstract: >-
+  A CLI tool providing layered visibility into the macOS → Colima VM → Docker
+  resource hierarchy. Built with Ink (React for CLI), it shows the resource
+  flow and actionable insights like "63GB reclaimable". Pure zsh fallback
+  for minimal environments.
+keywords:
+  - docker
+  - colima
+  - macos
+  - resources
+  - cli
+  - ink
+  - monitoring
+  - visibility
+license: MIT
+version: 0.0.0
+date-released: '2025-11-24'
