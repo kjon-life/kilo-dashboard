@@ -6,7 +6,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INSTALL_DIR="${1:-$HOME/Dev/utils/kilo-dashboard}"
 
 echo "╭─ kilo-dashboard installation ─────────────────────────────────╮"
-echo "│ macOS → Colima → Docker resource monitor                     │"
+echo "│ macOS → Colima → Docker resource monitor                      │"
 echo "╰───────────────────────────────────────────────────────────────╯"
 echo ""
 

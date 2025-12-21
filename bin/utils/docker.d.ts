@@ -28,6 +28,11 @@ export interface DockerImage {
     size: number;
     inUse: boolean;
 }
+export interface SculptorImage extends DockerImage {
+    projectName: string;
+    ageInDays: number;
+    createdTimestamp: Date;
+}
 export interface DockerVolume {
     name: string;
     driver: string;
@@ -93,5 +98,18 @@ export declare function cleanup(targets: {
     buildCache?: boolean;
 }): Promise<{
     success: boolean;
+    reclaimed: number;
+}>;
+/**
+ * Get Sculptor-specific images (sculptor-prj_*-snapshot)
+ * These are snapshot images created by the Sculptor AI coding agent
+ */
+export declare function getSculptorImages(): Promise<SculptorImage[]>;
+/**
+ * Clean up Sculptor images older than specified days
+ */
+export declare function cleanupSculptorImages(olderThanDays: number): Promise<{
+    success: boolean;
+    removed: number;
     reclaimed: number;
 }>;

@@ -1,5 +1,5 @@
-import React from 'react';
-import { Box, Text } from 'ink';
+import React from "react";
+import { Box, Text } from "ink";
 
 interface HeaderProps {
   hostname: string;
@@ -9,17 +9,19 @@ interface HeaderProps {
   dockerRunning: boolean;
 }
 
-export function Header({ 
-  hostname, 
-  chip, 
-  uptime, 
-  colimaRunning, 
-  dockerRunning 
+export function Header({
+  hostname,
+  chip,
+  uptime,
+  colimaRunning,
+  dockerRunning,
 }: HeaderProps): React.ReactElement {
   return (
     <Box flexDirection="column" marginBottom={1}>
       <Box>
-        <Text bold color="cyan">╭─ Docker Resource Dashboard ─────────────────────────────────────╮</Text>
+        <Text bold color="cyan">
+          ╭─ Docker Resource Dashboard─────────────────────────────────────╮
+        </Text>
       </Box>
       <Box paddingLeft={1}>
         <Text color="white">{hostname}</Text>
@@ -44,7 +46,9 @@ export function Header({
         )}
       </Box>
       <Box>
-        <Text color="cyan">╰──────────────────────────────────────────────────────────────────╯</Text>
+        <Text color="cyan">
+          ╰────────────────────────────────────────────────────────────────╯
+        </Text>
       </Box>
     </Box>
   );

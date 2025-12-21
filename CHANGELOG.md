@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.1] - 2025-12-21
+
+### Added
+- **VM Disk Monitoring**: New `dm colima` command shows Colima VM metrics (CPU, memory, data disk)
+- **Sculptor Image Cleanup**: New `dm sculptor` command analyzes and cleans old Sculptor snapshot images
+- **Proactive Warnings**: `dm status` now warns when VM data disk reaches 80% capacity
+- **VM Data Disk Visibility**: Status view now shows VM data disk (`/mnt/lima-colima`) where Docker images actually live
+
+### Changed
+- **Enhanced Status View**: Clarified resource hierarchy with "Host Memory", "Host Disk", and "VM Data Disk" labels
+- **Improved Cleanup Recommendations**: Status view now suggests `dm sculptor` for Sculptor-specific cleanup
+
+### Fixed
+- **Disk Space Crisis Prevention**: Tool now monitors the correct disk (VM data disk) where Docker stores images, preventing misleading "Docker build failed" errors when VM disk is full
+
+### Documentation
+- Added `design/bug-squash.md` documenting disk space crisis and diagnostic procedures
+- Updated help text and zsh completion for new commands
+
 ## [0.0.0] - 2025-11-24
 
 ### Added

@@ -26,6 +26,12 @@ export interface DockerImage {
   inUse: boolean;
 }
 
+export interface SculptorImage extends DockerImage {
+  projectName: string;
+  ageInDays: number;
+  createdTimestamp: Date;
+}
+
 export interface DockerVolume {
   name: string;
   driver: string;
@@ -322,19 +328,19 @@ export async function cleanup(targets: {
   buildCache?: boolean;
 }): Promise<{ success: boolean; reclaimed: number }> {
   let reclaimed = 0;
-  
+
   if (targets.containers) {
     await runCommand('docker container prune -f');
   }
-  
+
   if (targets.images) {
     await runCommand('docker image prune -f');
   }
-  
+
   if (targets.volumes) {
     await runCommand('docker volume prune -f');
   }
-  
+
   if (targets.buildCache) {
     const result = await runCommand('docker builder prune -f');
     const match = result.stdout?.match(/Total reclaimed space:\s*([\d.]+\s*\w+)/);
@@ -342,6 +348,75 @@ export async function cleanup(targets: {
       reclaimed += parseBytes(match[1]);
     }
   }
-  
+
   return { success: true, reclaimed };
+}
+
+/**
+ * Get Sculptor-specific images (sculptor-prj_*-snapshot)
+ * These are snapshot images created by the Sculptor AI coding agent
+ */
+export async function getSculptorImages(): Promise<SculptorImage[]> {
+  const allImages = await getImages();
+  const sculptorImages: SculptorImage[] = [];
+
+  for (const image of allImages) {
+    // Match sculptor-prj_*-snapshot pattern
+    const match = image.repository.match(/^sculptor-prj_(.+)-snapshot$/);
+    if (!match) continue;
+
+    const projectName = match[1];
+
+    // Parse created date - Docker format is like "2024-11-24 20:53:15 -0800 PST"
+    let createdDate = new Date();
+    let ageInDays = 0;
+
+    try {
+      // Try to parse the created string
+      createdDate = new Date(image.created);
+      if (!isNaN(createdDate.getTime())) {
+        const now = new Date();
+        ageInDays = Math.floor((now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24));
+      }
+    } catch {
+      // If parsing fails, use current date and 0 age
+    }
+
+    sculptorImages.push({
+      ...image,
+      projectName,
+      ageInDays,
+      createdTimestamp: createdDate,
+    });
+  }
+
+  // Sort by age (oldest first)
+  sculptorImages.sort((a, b) => b.ageInDays - a.ageInDays);
+
+  return sculptorImages;
+}
+
+/**
+ * Clean up Sculptor images older than specified days
+ */
+export async function cleanupSculptorImages(olderThanDays: number): Promise<{
+  success: boolean;
+  removed: number;
+  reclaimed: number
+}> {
+  const sculptorImages = await getSculptorImages();
+  const toRemove = sculptorImages.filter(img => img.ageInDays > olderThanDays && !img.inUse);
+
+  let removed = 0;
+  let reclaimed = 0;
+
+  for (const image of toRemove) {
+    const result = await runCommand(`docker image rm ${image.id} -f 2>/dev/null`);
+    if (result.success) {
+      removed++;
+      reclaimed += image.size;
+    }
+  }
+
+  return { success: true, removed, reclaimed };
 }

@@ -1,6 +1,6 @@
 {
   "name": "kilo-dashboard",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "macOS → Colima VM → Docker resource hierarchy monitor. Built with Ink.",
   "type": "module",
   "bin": {

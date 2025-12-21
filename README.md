@@ -1,5 +1,5 @@
 # kilo-dashboard
-**Last Update**: 2025-11-24
+**Version**: 0.0.1 • **Last Update**: 2025-12-21
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen.svg)
@@ -11,6 +11,12 @@
 **Layered visibility into macOS → Colima VM → Docker resource hierarchy**
 
 Built with [Ink](https://github.com/vadimdemedes/ink) — the same React-for-CLI framework that powers Claude Code.
+
+### Dashboard View (`dm dashboard`)
+![Dashboard Screenshot](./assets/dashboard-screenshot.png)
+
+### Colima VM Metrics (`dm colima`)
+![Colima View Screenshot](./assets/colima-view-screenshot.png)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -30,36 +36,55 @@ source "$HOME/Dev/utils/kilo-dashboard/dm.zsh"
 ## Usage
 
 ```bash
-dm              # status
-dm dashboard    # interactive
-dm clean        # cleanup wizard
-dm containers   # container details
+dm              # Quick status (default)
+dm dashboard    # Interactive dashboard with auto-refresh
+dm clean        # Cleanup wizard
+dm containers   # Container details
+dm colima       # Colima VM metrics and disk usage
+dm sculptor     # Analyze and clean Sculptor snapshot images
 ```
 
 **Aliases**: `dms` `dmd` `dmc`
+
+### New in v0.0.1
+
+**Disk Space Crisis Prevention:**
+- `dm colima` — Monitor Colima VM data disk where Docker images actually live
+- `dm sculptor` — Analyze and clean old Sculptor snapshot images by age
+- Proactive 80% disk warning prevents space exhaustion
+- Status view now shows VM data disk (`/mnt/lima-colima`) alongside host metrics
+
+**Example:**
+```bash
+# Analyze Sculptor images
+dm sculptor
+
+# Clean images older than 30 days
+dm sculptor --clean --older-than 30
+```
 
 ## Why
 
 ### Layered Visibility
 
-Shows the resource flow from **macOS → Colima VM → Docker daemon**, to understand where disk is allocated.
+Shows the resource flow from **macOS → Colima VM → Docker daemon**, with proper distinction between host and VM resources.
 
-```
-┌─ macOS System ────────────────────────────────────────────┐
-  Memory    ████████████░░░░░░░░░░░░░░░░░░ 58.2% (9.3GB/16GB)
-  Disk      ████████████████░░░░░░░░░░░░░░ 67.3% (345GB/512GB)
+**Status View** (`dm status`):
+- Host Memory & Disk
+- **VM Data Disk** — where Docker images actually live (`/mnt/lima-colima`)
+- Docker Space breakdown (images, containers, volumes, cache)
+- **⚠️ Warnings** when VM disk reaches 80% capacity
 
-┌─ Colima VM ───────────────────────────────────────────────┐
-  4 CPUs • 8GB RAM • 60GB disk • vz
-  VM Memory ██████████████░░░░░░░░░░░░░░░░ 72.1% (5.8GB/8GB)
-  VM Disk   ████████████████████░░░░░░░░░░ 82.4% (49GB/60GB)
+**Colima View** (`dm colima`):
+- VM CPU usage
+- VM memory allocation and usage
+- VM root disk
+- **VM data disk** — the critical disk where Docker stores everything
 
-┌─ Docker Resources ────────────────────────────────────────┐
-  Images:      84.2GB (63.5GB reclaimable)
-  Containers:  1/4 running
-  Volumes:     7.9GB (1.6GB reclaimable)
-  Build Cache: 4.3GB (4.3GB reclaimable)
-```
+**Sculptor View** (`dm sculptor`):
+- Lists Sculptor snapshot images by age
+- Shows reclaimable space from old images
+- Cleanup recommendations with `--clean` option
 
 ### Actionable Output
 
@@ -95,17 +120,23 @@ kilo-dashboard/
 ├── src/
 │   ├── components/
 │   │   ├── Dashboard.tsx       # Main dashboard
-│   │   ├── StatusView.tsx      # Quick status
+│   │   ├── StatusView.tsx      # Quick status with VM disk
 │   │   ├── CleanupView.tsx     # Cleanup wizard
 │   │   ├── ContainersView.tsx  # Container details
+│   │   ├── ColimaView.tsx      # Colima VM metrics (new in v0.0.1)
+│   │   ├── SculptorView.tsx    # Sculptor image analysis (new in v0.0.1)
 │   │   ├── Header.tsx          # Dashboard header
 │   │   └── ResourceBar.tsx     # Progress bars
 │   ├── utils/
-│   │   ├── colima.ts           # Colima VM stats
-│   │   ├── docker.ts           # Docker API
+│   │   ├── colima.ts           # Colima VM stats + data disk
+│   │   ├── docker.ts           # Docker API + Sculptor images
 │   │   ├── system.ts           # macOS system stats
 │   │   └── exec.ts             # Command execution
 │   └── dm.tsx                  # CLI entry point
+├── design/
+│   └── bug-squash.md           # Disk space crisis documentation
+├── assets/
+│   └── dashboard-screenshot.png
 ├── dm.zsh                      # Shell integration
 └── install.sh                  # Installer
 ```

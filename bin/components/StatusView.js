@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Text, useApp } from 'ink';
 import { getSystemInfo } from '../utils/system.js';
-import { getColimaStatus } from '../utils/colima.js';
+import { getColimaStatus, getColimaDataDisk } from '../utils/colima.js';
 import { isDockerRunning, getContainers, getSystemDF, cleanupDryRun } from '../utils/docker.js';
 function formatBytes(bytes) {
     if (bytes === 0)
@@ -23,6 +23,7 @@ export function StatusView() {
     const [data, setData] = useState({
         system: null,
         colima: null,
+        colimaDataDisk: null,
         dockerReady: false,
         containers: [],
         systemDF: null,
@@ -38,14 +39,16 @@ export function StatusView() {
             let containers = [];
             let systemDF = null;
             let cleanup = null;
+            let colimaDataDisk = null;
             if (dockerReady) {
-                [containers, systemDF, cleanup] = await Promise.all([
+                [containers, systemDF, cleanup, colimaDataDisk] = await Promise.all([
                     getContainers(),
                     getSystemDF(),
                     cleanupDryRun(),
+                    getColimaDataDisk(),
                 ]);
             }
-            setData({ system, colima, dockerReady, containers, systemDF, cleanup });
+            setData({ system, colima, colimaDataDisk, dockerReady, containers, systemDF, cleanup });
             setLoading(false);
             // Exit after rendering
             setTimeout(() => exit(), 100);
@@ -54,13 +57,15 @@ export function StatusView() {
     if (loading) {
         return React.createElement(Text, { color: "gray" }, "Loading resource status...");
     }
-    const { system, colima, dockerReady, containers, systemDF, cleanup } = data;
+    const { system, colima, colimaDataDisk, dockerReady, containers, systemDF, cleanup } = data;
     const running = containers.filter(c => c.running).length;
     const stopped = containers.filter(c => !c.running).length;
     const memPercent = system?.memory
         ? (system.memory.used / system.memory.total) * 100
         : 0;
     const diskPercent = system?.disks?.[0]?.percentUsed || 0;
+    // Colima VM data disk warning
+    const vmDiskWarning = colimaDataDisk && colimaDataDisk.usedPercent >= 80;
     const totalReclaimable = cleanup
         ? cleanup.images.bytes + cleanup.containers.bytes + cleanup.volumes.bytes + cleanup.buildCache.bytes
         : 0;
@@ -94,8 +99,8 @@ export function StatusView() {
         React.createElement(Box, { flexDirection: "column", marginBottom: 1 },
             React.createElement(Text, { bold: true }, "Resource Usage:"),
             React.createElement(Box, null,
-                React.createElement(Box, { width: 12 },
-                    React.createElement(Text, null, "  Memory")),
+                React.createElement(Box, { width: 14 },
+                    React.createElement(Text, null, "  Host Memory")),
                 React.createElement(Text, null, bar(memPercent)),
                 React.createElement(Text, null,
                     " ",
@@ -108,8 +113,8 @@ export function StatusView() {
                     formatBytes(system?.memory?.total || 0),
                     ")")),
             React.createElement(Box, null,
-                React.createElement(Box, { width: 12 },
-                    React.createElement(Text, null, "  Disk")),
+                React.createElement(Box, { width: 14 },
+                    React.createElement(Text, null, "  Host Disk")),
                 React.createElement(Text, null, bar(diskPercent)),
                 React.createElement(Text, null,
                     " ",
@@ -120,7 +125,22 @@ export function StatusView() {
                     formatBytes(system?.disks?.[0]?.used || 0),
                     "/",
                     formatBytes(system?.disks?.[0]?.total || 0),
-                    ")"))),
+                    ")")),
+            colimaDataDisk && (React.createElement(Box, null,
+                React.createElement(Box, { width: 14 },
+                    React.createElement(Text, null, "  VM Data Disk")),
+                React.createElement(Text, null, bar(colimaDataDisk.usedPercent)),
+                React.createElement(Text, null,
+                    " ",
+                    colimaDataDisk.usedPercent,
+                    "%"),
+                React.createElement(Text, { color: "gray" },
+                    " (",
+                    formatBytes(colimaDataDisk.usedBytes),
+                    "/",
+                    formatBytes(colimaDataDisk.totalBytes),
+                    ")"),
+                vmDiskWarning && React.createElement(Text, { color: "yellow" }, " \u26A0\uFE0F")))),
         systemDF && (React.createElement(Box, { flexDirection: "column", marginBottom: 1 },
             React.createElement(Text, { bold: true }, "Docker Space:"),
             React.createElement(Box, null,
@@ -151,6 +171,17 @@ export function StatusView() {
                 React.createElement(Box, { width: 14 },
                     React.createElement(Text, null, "  Build Cache")),
                 React.createElement(Text, null, formatBytes(systemDF.buildCache.size))))),
+        vmDiskWarning && (React.createElement(Box, { flexDirection: "column", borderStyle: "round", borderColor: "yellow", paddingX: 1, marginBottom: 1 },
+            React.createElement(Text, { bold: true, color: "yellow" }, "\u26A0\uFE0F  VM Data Disk Critical"),
+            React.createElement(Text, null,
+                "Colima VM disk is ",
+                colimaDataDisk?.usedPercent,
+                "% full (",
+                formatBytes(colimaDataDisk?.usedBytes || 0),
+                "/",
+                formatBytes(colimaDataDisk?.totalBytes || 0),
+                ")"),
+            React.createElement(Text, { color: "cyan" }, "Run: dm colima (details) \u2022 dm sculptor (cleanup) \u2022 dm clean (quick cleanup)"))),
         totalReclaimable > 100 * 1024 * 1024 && ( // > 100MB
         React.createElement(Box, { flexDirection: "column", borderStyle: "round", borderColor: "yellow", paddingX: 1 },
             React.createElement(Text, { bold: true, color: "yellow" }, "\u26A1 Cleanup Available"),
@@ -179,5 +210,5 @@ export function StatusView() {
                 "  \u2022 Build cache (",
                 formatBytes(cleanup.buildCache.bytes),
                 ")")),
-            React.createElement(Text, { color: "cyan" }, "Run: dm clean")))));
+            React.createElement(Text, { color: "cyan" }, "Run: dm clean (quick cleanup) \u2022 dm sculptor (Sculptor images)")))));
 }

@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 interface HeaderProps {
     hostname: string;
     chip: string;
@@ -6,5 +6,5 @@ interface HeaderProps {
     colimaRunning: boolean;
     dockerRunning: boolean;
 }
-export declare function Header({ hostname, chip, uptime, colimaRunning, dockerRunning }: HeaderProps): React.ReactElement;
+export declare function Header({ hostname, chip, uptime, colimaRunning, dockerRunning, }: HeaderProps): React.ReactElement;
 export {};
