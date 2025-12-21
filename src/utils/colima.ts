@@ -30,15 +30,17 @@ export interface ColimaDataDisk {
 
 export async function getColimaStatus(): Promise<ColimaStatus | null> {
   const result = await runCommand('colima status --json 2>/dev/null');
-  
+
   if (!result.success || !result.stdout) {
     return null;
   }
-  
+
   try {
     const status = JSON.parse(result.stdout);
+    // If JSON parsing succeeds, Colima is running
+    // The status object itself being parseable indicates a running state
     return {
-      running: status.status === 'Running',
+      running: true,  // Fixed: successful JSON parse = running
       cpu: status.cpu || 0,
       memory: (status.memory || 0) * 1024 * 1024 * 1024, // GB to bytes
       disk: (status.disk || 0) * 1024 * 1024 * 1024,     // GB to bytes
@@ -115,8 +117,9 @@ export function getColimaStatusSync(): ColimaStatus | null {
     if (!stdout) return null;
 
     const status = JSON.parse(stdout);
+    // If JSON parsing succeeds, Colima is running
     return {
-      running: status.status === 'Running',
+      running: true,  // Fixed: successful JSON parse = running
       cpu: status.cpu || 0,
       memory: (status.memory || 0) * 1024 * 1024 * 1024,
       disk: (status.disk || 0) * 1024 * 1024 * 1024,
