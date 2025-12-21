@@ -115,41 +115,27 @@ export function ColimaView() {
 
           <Box flexDirection="column" marginBottom={1}>
             <Box marginBottom={1}>
-              <Box width={16}>
-                <Text>CPU Usage:</Text>
-              </Box>
-              <ResourceBar
-                percent={vmStats.cpuUsagePercent}
-                width={40}
-                label={`${vmStats.cpuUsagePercent.toFixed(1)}%`}
-              />
+              <Text>CPU Usage: {vmStats.cpuUsagePercent.toFixed(1)}%</Text>
             </Box>
 
-            <Box marginBottom={1}>
-              <Box width={16}>
-                <Text>Memory:</Text>
+            <ResourceBar
+              label="Memory:"
+              used={vmStats.memoryUsedBytes}
+              total={vmStats.memoryTotalBytes}
+              width={40}
+            />
+            {memWarning && (
+              <Box marginLeft={1}>
+                <Text color="yellow">⚠️</Text>
               </Box>
-              <ResourceBar
-                percent={(vmStats.memoryUsedBytes / vmStats.memoryTotalBytes) * 100}
-                width={40}
-                label={`${formatBytes(vmStats.memoryUsedBytes)} / ${formatBytes(vmStats.memoryTotalBytes)}`}
-                warning={memWarning}
-              />
-              {memWarning && (
-                <Text color="yellow"> ⚠️</Text>
-              )}
-            </Box>
+            )}
 
-            <Box marginBottom={1}>
-              <Box width={16}>
-                <Text>Root Disk:</Text>
-              </Box>
-              <ResourceBar
-                percent={(vmStats.diskUsedBytes / vmStats.diskTotalBytes) * 100}
-                width={40}
-                label={`${formatBytes(vmStats.diskUsedBytes)} / ${formatBytes(vmStats.diskTotalBytes)}`}
-              />
-            </Box>
+            <ResourceBar
+              label="Root Disk:"
+              used={vmStats.diskUsedBytes}
+              total={vmStats.diskTotalBytes}
+              width={40}
+            />
           </Box>
         </>
       )}
@@ -168,23 +154,20 @@ export function ColimaView() {
               <Text>{dataDisk.mountPoint}</Text>
             </Box>
 
-            <Box marginBottom={1}>
-              <Box width={16}>
-                <Text>Disk Usage:</Text>
+            <ResourceBar
+              label="Disk Usage:"
+              used={dataDisk.usedBytes}
+              total={dataDisk.totalBytes}
+              width={40}
+            />
+            {diskWarning && (
+              <Box marginLeft={1}>
+                <Text color="yellow">⚠️</Text>
               </Box>
-              <ResourceBar
-                percent={dataDisk.usedPercent}
-                width={40}
-                label={`${formatBytes(dataDisk.usedBytes)} / ${formatBytes(dataDisk.totalBytes)} (${dataDisk.usedPercent}%)`}
-                warning={diskWarning}
-              />
-              {diskWarning && (
-                <Text color="yellow"> ⚠️</Text>
-              )}
-            </Box>
+            )}
 
             {dataDisk.availableBytes > 0 && (
-              <Box>
+              <Box marginTop={1}>
                 <Box width={16}>
                   <Text dimColor>Available:</Text>
                 </Box>
