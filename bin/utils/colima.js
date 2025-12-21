@@ -6,8 +6,10 @@ export async function getColimaStatus() {
     }
     try {
         const status = JSON.parse(result.stdout);
+        // If JSON parsing succeeds, Colima is running
+        // The status object itself being parseable indicates a running state
         return {
-            running: status.status === 'Running',
+            running: true, // Fixed: successful JSON parse = running
             cpu: status.cpu || 0,
             memory: (status.memory || 0) * 1024 * 1024 * 1024, // GB to bytes
             disk: (status.disk || 0) * 1024 * 1024 * 1024, // GB to bytes
@@ -67,8 +69,9 @@ export function getColimaStatusSync() {
         if (!stdout)
             return null;
         const status = JSON.parse(stdout);
+        // If JSON parsing succeeds, Colima is running
         return {
-            running: status.status === 'Running',
+            running: true, // Fixed: successful JSON parse = running
             cpu: status.cpu || 0,
             memory: (status.memory || 0) * 1024 * 1024 * 1024,
             disk: (status.disk || 0) * 1024 * 1024 * 1024,

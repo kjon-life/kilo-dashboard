@@ -12,7 +12,11 @@
 
 Built with [Ink](https://github.com/vadimdemedes/ink) — the same React-for-CLI framework that powers Claude Code.
 
+### Dashboard View (`dm dashboard`)
 ![Dashboard Screenshot](./assets/dashboard-screenshot.png)
+
+### Colima VM Metrics (`dm colima`)
+![Colima View Screenshot](./assets/colima-view-screenshot.png)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
