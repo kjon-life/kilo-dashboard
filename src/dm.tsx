@@ -14,7 +14,7 @@ const program = new Command();
 program
   .name('dm')
   .description('macOS → Colima VM → Docker resource hierarchy monitor')
-  .version('0.0.0');
+  .version('0.0.1');
 
 program
   .command('dashboard')
