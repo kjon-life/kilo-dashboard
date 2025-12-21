@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Text, useApp } from 'ink';
 import { getSystemInfo, type MacOSSystem } from '../utils/system.js';
-import { getColimaStatus, type ColimaStatus } from '../utils/colima.js';
-import { 
-  isDockerRunning, 
-  getContainers, 
+import { getColimaStatus, getColimaDataDisk, type ColimaStatus, type ColimaDataDisk } from '../utils/colima.js';
+import {
+  isDockerRunning,
+  getContainers,
   getSystemDF,
   cleanupDryRun,
   type DockerContainer,
   type DockerSystemDF,
-  type CleanupStats 
+  type CleanupStats
 } from '../utils/docker.js';
 
 function formatBytes(bytes: number): string {
@@ -33,6 +33,7 @@ export function StatusView(): React.ReactElement {
   const [data, setData] = useState<{
     system: MacOSSystem | null;
     colima: ColimaStatus | null;
+    colimaDataDisk: ColimaDataDisk | null;
     dockerReady: boolean;
     containers: DockerContainer[];
     systemDF: DockerSystemDF | null;
@@ -40,6 +41,7 @@ export function StatusView(): React.ReactElement {
   }>({
     system: null,
     colima: null,
+    colimaDataDisk: null,
     dockerReady: false,
     containers: [],
     systemDF: null,
@@ -53,22 +55,24 @@ export function StatusView(): React.ReactElement {
         getColimaStatus(),
         isDockerRunning(),
       ]);
-      
+
       let containers: DockerContainer[] = [];
       let systemDF: DockerSystemDF | null = null;
       let cleanup: CleanupStats | null = null;
-      
+      let colimaDataDisk: ColimaDataDisk | null = null;
+
       if (dockerReady) {
-        [containers, systemDF, cleanup] = await Promise.all([
+        [containers, systemDF, cleanup, colimaDataDisk] = await Promise.all([
           getContainers(),
           getSystemDF(),
           cleanupDryRun(),
+          getColimaDataDisk(),
         ]);
       }
-      
-      setData({ system, colima, dockerReady, containers, systemDF, cleanup });
+
+      setData({ system, colima, colimaDataDisk, dockerReady, containers, systemDF, cleanup });
       setLoading(false);
-      
+
       // Exit after rendering
       setTimeout(() => exit(), 100);
     })();
@@ -78,14 +82,17 @@ export function StatusView(): React.ReactElement {
     return <Text color="gray">Loading resource status...</Text>;
   }
   
-  const { system, colima, dockerReady, containers, systemDF, cleanup } = data;
+  const { system, colima, colimaDataDisk, dockerReady, containers, systemDF, cleanup } = data;
   const running = containers.filter(c => c.running).length;
   const stopped = containers.filter(c => !c.running).length;
-  
-  const memPercent = system?.memory 
-    ? (system.memory.used / system.memory.total) * 100 
+
+  const memPercent = system?.memory
+    ? (system.memory.used / system.memory.total) * 100
     : 0;
   const diskPercent = system?.disks?.[0]?.percentUsed || 0;
+
+  // Colima VM data disk warning
+  const vmDiskWarning = colimaDataDisk && colimaDataDisk.usedPercent >= 80;
   
   const totalReclaimable = cleanup 
     ? cleanup.images.bytes + cleanup.containers.bytes + cleanup.volumes.bytes + cleanup.buildCache.bytes
@@ -137,17 +144,26 @@ export function StatusView(): React.ReactElement {
       <Box flexDirection="column" marginBottom={1}>
         <Text bold>Resource Usage:</Text>
         <Box>
-          <Box width={12}><Text>  Memory</Text></Box>
+          <Box width={14}><Text>  Host Memory</Text></Box>
           <Text>{bar(memPercent)}</Text>
           <Text> {memPercent.toFixed(0)}%</Text>
           <Text color="gray"> ({formatBytes(system?.memory?.used || 0)}/{formatBytes(system?.memory?.total || 0)})</Text>
         </Box>
         <Box>
-          <Box width={12}><Text>  Disk</Text></Box>
+          <Box width={14}><Text>  Host Disk</Text></Box>
           <Text>{bar(diskPercent)}</Text>
           <Text> {diskPercent}%</Text>
           <Text color="gray"> ({formatBytes(system?.disks?.[0]?.used || 0)}/{formatBytes(system?.disks?.[0]?.total || 0)})</Text>
         </Box>
+        {colimaDataDisk && (
+          <Box>
+            <Box width={14}><Text>  VM Data Disk</Text></Box>
+            <Text>{bar(colimaDataDisk.usedPercent)}</Text>
+            <Text> {colimaDataDisk.usedPercent}%</Text>
+            <Text color="gray"> ({formatBytes(colimaDataDisk.usedBytes)}/{formatBytes(colimaDataDisk.totalBytes)})</Text>
+            {vmDiskWarning && <Text color="yellow"> ⚠️</Text>}
+          </Box>
+        )}
       </Box>
       
       {/* Docker Space */}
@@ -175,6 +191,17 @@ export function StatusView(): React.ReactElement {
         </Box>
       )}
       
+      {/* VM Disk Warning */}
+      {vmDiskWarning && (
+        <Box flexDirection="column" borderStyle="round" borderColor="yellow" paddingX={1} marginBottom={1}>
+          <Text bold color="yellow">⚠️  VM Data Disk Critical</Text>
+          <Text>
+            Colima VM disk is {colimaDataDisk?.usedPercent}% full ({formatBytes(colimaDataDisk?.usedBytes || 0)}/{formatBytes(colimaDataDisk?.totalBytes || 0)})
+          </Text>
+          <Text color="cyan">Run: dm colima (details) • dm sculptor (cleanup) • dm clean (quick cleanup)</Text>
+        </Box>
+      )}
+
       {/* Cleanup Recommendation */}
       {totalReclaimable > 100 * 1024 * 1024 && ( // > 100MB
         <Box flexDirection="column" borderStyle="round" borderColor="yellow" paddingX={1}>
@@ -194,7 +221,7 @@ export function StatusView(): React.ReactElement {
           {cleanup && cleanup.buildCache.bytes > 0 && (
             <Text color="gray">  • Build cache ({formatBytes(cleanup.buildCache.bytes)})</Text>
           )}
-          <Text color="cyan">Run: dm clean</Text>
+          <Text color="cyan">Run: dm clean (quick cleanup) • dm sculptor (Sculptor images)</Text>
         </Box>
       )}
     </Box>

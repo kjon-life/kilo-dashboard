@@ -7,6 +7,8 @@
 #   dm dashboard    # Interactive dashboard
 #   dm clean        # Cleanup wizard
 #   dm containers   # Container list
+#   dm colima       # Colima VM metrics
+#   dm sculptor     # Sculptor image analysis
 #   dms            # Quick status (alias)
 #   dmc            # Quick cleanup (alias)
 #   dmd            # Dashboard (alias)
@@ -153,6 +155,8 @@ Commands:
   dm dashboard, dmd Interactive dashboard (requires Node)
   dm clean, dmc     Cleanup wizard
   dm containers     Container list (requires Node)
+  dm colima         Colima VM metrics and disk usage (requires Node)
+  dm sculptor       Sculptor image analysis and cleanup (requires Node)
   dm help           This help
 
 Examples:
@@ -161,6 +165,9 @@ Examples:
   dm clean          Interactive cleanup
   dmc               Same as above
   dmd               Full interactive dashboard
+  dm colima         Check Colima VM disk usage
+  dm sculptor       Analyze Sculptor images
+  dm sculptor --clean --older-than 30  Clean images older than 30 days
 EOF
 }
 
@@ -173,6 +180,8 @@ if [[ -n "$ZSH_VERSION" ]]; then
             'dashboard:Interactive dashboard'
             'clean:Cleanup wizard'
             'containers:Container list'
+            'colima:Colima VM metrics and disk usage'
+            'sculptor:Sculptor image analysis and cleanup'
             'help:Show help'
         )
         _describe 'command' commands
